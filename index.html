@@ -13,7 +13,7 @@
     <div id="app" class="container mt-3">
       <div>
         <div class="text-right mt-4">
-          <button class="btn btn-primary" @click="openModal">
+          <button class="btn btn-primary" @click="openModal(true)">
             建立新的產品
           </button>
         </div>
@@ -54,10 +54,10 @@
               </td>
               <td>
                 <div class="btn-group">
-                  <button class="btn btn-outline-primary btn-sm" @click="openModal('edit', item)">
+                  <button class="btn btn-outline-primary btn-sm" @click="openModal(false, item)">
                     編輯
                   </button>
-                  <button class="btn btn-outline-danger btn-sm" @click="openModal('delete', item)">
+                  <button class="btn btn-outline-danger btn-sm" @click="deleteModalShow(item)">
                     刪除
                   </button>
                 </div>
@@ -174,7 +174,7 @@
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
                   取消
                 </button>
-                <button type="button" class="btn btn-danger">
+                <button type="button" class="btn btn-danger" @click="deleteProduct">
                   確認刪除
                 </button>
               </div>
@@ -228,19 +228,52 @@ new Vue({
           ],  
       tempProduct:{
         imageUrl: []
-      }   
+      },
+      isNew: false
     },
     methods: {
-        openModal() {
-          $('#productModal').modal('show')
+        openModal(isNew, item) {
+        if (isNew){
+            this.tempProduct = {};
+            this.isNew = true
+        } else {
+            this.tempProduct = Object.assign({}, item)
+            this.isNew = false
+        }
+        $('#productModal').modal('show')
         },
+
         updateProduct() {
-        vm = this;
+        if(this.isNew){
         const id = new Date().getTime();
-        vm.tempProduct.id = id;
-        vm.products.push(this.tempProduct);
-        vm.tempProduct = {};
+        this.tempProduct.id = id;
+        this.products.push(this.tempProduct);
+        }else{
+          const id = this.tempProduct.id;
+          this.products.forEach((item,i) =>{
+            if (item.id === id) {
+            this.products[i] = this.tempProduct;
+          }  
+          })
+        }
+        this.tempProduct = {};
         $('#productModal').modal('hide');
+        },
+
+        deleteModalShow(item) {
+        this.tempProduct = Object.assign({}, item)
+        $('#delProductModal').modal('show')
+        },
+
+        deleteProduct() {
+        const id = this.tempProduct.id;
+        this.products.forEach((item,i) =>{
+            if (item.id === id) {
+                this.products.splice(i, 1);
+                this.tempProduct = {};
+                $('#delProductModal').modal('hide');
+          }  
+          })
         }
     }
 });    
