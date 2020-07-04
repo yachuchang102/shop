@@ -13,7 +13,7 @@
     <div id="app" class="container mt-3">
       <div>
         <div class="text-right mt-4">
-          <button class="btn btn-primary" @click="openModal('new')">
+          <button class="btn btn-primary" @click="openModal">
             建立新的產品
           </button>
         </div>
@@ -174,7 +174,7 @@
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
                   取消
                 </button>
-                <button type="button" class="btn btn-danger" @click="delProduct">
+                <button type="button" class="btn btn-danger">
                   確認刪除
                 </button>
               </div>
@@ -203,18 +203,45 @@ new Vue({
       products:[
           {
               id:1234567,
-              unit: '台',
-              category: '上衣',
-              title: '白上衣',
+              unit: '件',
+              category: 'sports',
+              title: '運動衣',
               origin_price: 1000,
               price: 800,
               description: '夏天穿衣',
               content: '快來搶貨',
               is_enabled: 1,
-              imageUrl: ''
+              imageUrl: 'https://images.unsplash.com/photo-1593352217519-84def9fc726c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=750&q=80'
+          },
+          {
+              id:7654321,
+              unit: '件',
+              category: 'sports',
+              title: '瑜珈褲',
+              origin_price: 1250,
+              price: 980,
+              description: '瑜珈健身',
+              content: '快來搶貨',
+              is_enabled: 1,
+              imageUrl: 'https://images.unsplash.com/photo-1574454941059-9408c4d3f268?ixlib=rb-1.2.1&auto=format&fit=crop&w=750&q=80'
           }
           ],  
-      tempProduct:{}   
+      tempProduct:{
+        imageUrl: []
+      }   
+    },
+    methods: {
+        openModal() {
+          $('#productModal').modal('show')
+        },
+        updateProduct() {
+        vm = this;
+        const id = new Date().getTime();
+        vm.tempProduct.id = id;
+        vm.products.push(this.tempProduct);
+        vm.tempProduct = {};
+        $('#productModal').modal('hide');
+        }
     }
 });    
 </script>
