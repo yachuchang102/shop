@@ -121,19 +121,19 @@
               <div class="modal-body">
                 <div class="row">
                   <div class="col-sm-4">
-\            <div v-for="i in 5" :key="i + 'img'" class="form-group">
-  <label :for="'img' + i">輸入圖片網址</label>
-  <input :id="'img' + i" v-model="tempProduct.imageUrl[i - 1]" type="text" class="form-control"
-    placeholder="請輸入圖片連結">
-</div>
-<div class="form-group">
-  <label for="customFile">
-    或 上傳圖片
-    <i v-if="status.fileUploading" class="fas fa-spinner fa-spin"></i>
-  </label>
-  <input id="customFile" ref="file" type="file" class="form-control" @change="uploadFile">
-</div>
-<img class="img-fluid" :src="tempProduct.imageUrl[0]" alt />
+              <div v-for="i in 5" :key="i + 'img'" class="form-group">
+                <label :for="'img' + i">輸入圖片網址</label>
+                <input :id="'img' + i" v-model="tempProduct.imageUrl[i - 1]" type="text" class="form-control"
+                  placeholder="請輸入圖片連結">
+                </div>
+                <div class="form-group">
+                 <label for="customFile">
+                     或 上傳圖片
+                <i v-if="status.fileUploading" class="fas fa-spinner fa-spin"></i>
+                </label>
+                 <input id="customFile" ref="file" type="file" class="form-control" @change="uploadFile">
+                </div>
+                <img class="img-fluid" :src="tempProduct.imageUrl[0]" alt="" />
                   </div>
                   <div class="col-sm-8">
                     <div class="form-group">
@@ -315,9 +315,8 @@ new Vue({
         axios.defaults.headers.common.Authorization = `Bearer ${this.token}`;
 
         axios[httpMethod](api, this.tempProduct).then(() => {
-        console.log('123')
         $('#productModal').modal('hide');
-        this.getData()
+        this.getData();
       }).catch((error) => {
         console.log(error)
       });
@@ -329,34 +328,43 @@ new Vue({
         },
 
         deleteProduct() {
-        const id = this.tempProduct.id;
-        this.products.forEach((item,i) =>{
-            if (item.id === id) {
-                this.products.splice(i, 1);
-                this.tempProduct = {};
-                $('#delProductModal').modal('hide');
-          }  
-          })
+          const url = `https://course-ec-api.hexschool.io/api/${this.uuid}/admin/ec/product/${this.tempProduct.id}`;
+
+        //預設帶入 token
+        axios.defaults.headers.common.Authorization = `Bearer ${this.token}`;
+
+        axios.delete(url).then(() => {
+        $('#delProductModal').modal('hide');
+        this.getData();
+           });
         },
 
     // 上傳檔案
     uploadFile() {
-      const uploadedFile = this.$refs.file.files[0];
+      this.token = document.cookie.replace(/(?:(?:^|.*;\s*)someCookieName\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+
+      //選取DOM元素
+      const uploadedFile = document.querySelector('#customFile').files[0];
+      console.dir(uploadedFile);
+      //轉成FormData
       const formData = new FormData();
       formData.append('file', uploadedFile);
+
+      //路由、驗證
       const url = `https://course-ec-api.hexschool.io/api/${this.uuid}/admin/storage`;
+      //預設帶入 token
+      axios.defaults.headers.common.Authorization = `Bearer ${this.token}`;
+      
       this.status.fileUploading = true;
+      
       axios.post(url, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       }).then((response) => {
-        this.status.fileUploading = false;
-        if (response.status === 200) {
-          this.tempProduct.imageUrl.push(response.data.data.path);
-        }
-      }).catch(() => {
-        console.log('上傳不可超過 2 MB');
+        console.log(response.status);
+        this.tempProduct.imageUrl.push(response.data.data.path);
+        console.log(this.tempProduct.imageUrl)
         this.status.fileUploading = false;
       });
     },
