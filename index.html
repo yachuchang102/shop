@@ -10,8 +10,43 @@
   </head>
 
   <body>
-    <div id="app" class="container mt-3">
+    <div id="app">
       <div>
+        <!--Navbar-->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <a class="navbar-brand" href="#">Navbar</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+        
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item active">
+                <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">Link</a>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Dropdown
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                  <a class="dropdown-item" href="#">Action</a>
+                  <a class="dropdown-item" href="#">Another action</a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="#">Something else here</a>
+                </div>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+              </li>
+            </ul>
+            <button class="btn btn-outline-success my-2 my-sm-0" type="button" @click="signout">登出</button>
+          </div>
+        </nav>
+        <!--Navbarend-->
+        <div class="container">
         <div class="text-right mt-4">
           <button class="btn btn-primary" @click="openModal(true)">
             建立新的產品
@@ -65,6 +100,11 @@
             </tr>
           </tbody>
         </table>
+        <!--pagination-->
+        <!--前面將分頁資訊傳入元件內props；後面元件內的事件去觸發getData，讓資料能夠分頁跑-->
+        <pagination :pages="pagination" :emit-pages="getData"></pagination>
+        <!--paginationend-->
+        </div>
         <!-- Modal -->
         <div id="productModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
           aria-hidden="true">
@@ -81,12 +121,19 @@
               <div class="modal-body">
                 <div class="row">
                   <div class="col-sm-4">
-                    <div class="form-group">
-                      <label for="imageUrl">輸入圖片網址</label>
-                      <input id="imageUrl" v-model="tempProduct.imageUrl" type="text" class="form-control"
-                        placeholder="請輸入圖片連結">
-                    </div>
-                    <img class="img-fluid" :src="tempProduct.imageUrl" alt>
+\            <div v-for="i in 5" :key="i + 'img'" class="form-group">
+  <label :for="'img' + i">輸入圖片網址</label>
+  <input :id="'img' + i" v-model="tempProduct.imageUrl[i - 1]" type="text" class="form-control"
+    placeholder="請輸入圖片連結">
+</div>
+<div class="form-group">
+  <label for="customFile">
+    或 上傳圖片
+    <i v-if="status.fileUploading" class="fas fa-spinner fa-spin"></i>
+  </label>
+  <input id="customFile" ref="file" type="file" class="form-control" @change="uploadFile">
+</div>
+<img class="img-fluid" :src="tempProduct.imageUrl[0]" alt />
                   </div>
                   <div class="col-sm-8">
                     <div class="form-group">
@@ -193,45 +240,56 @@
       integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous">
       </script>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- 分頁元件建立 -->
+    <script src="./pagination.js"></script>
   </body>
 
 </html>
 <script>
+const apiPath = 'https://course-ec-api.hexschool.io/api/';
+
 new Vue({
     el: '#app',
     data: {
-      products:[
-          {
-              id:1234567,
-              unit: '件',
-              category: 'sports',
-              title: '運動衣',
-              origin_price: 1000,
-              price: 800,
-              description: '夏天穿衣',
-              content: '快來搶貨',
-              is_enabled: 1,
-              imageUrl: 'https://images.unsplash.com/photo-1593352217519-84def9fc726c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=750&q=80'
-          },
-          {
-              id:7654321,
-              unit: '件',
-              category: 'sports',
-              title: '瑜珈褲',
-              origin_price: 1250,
-              price: 980,
-              description: '瑜珈健身',
-              content: '快來搶貨',
-              is_enabled: 1,
-              imageUrl: 'https://images.unsplash.com/photo-1574454941059-9408c4d3f268?ixlib=rb-1.2.1&auto=format&fit=crop&w=750&q=80'
-          }
-          ],  
+      status: {
+        fileUploading: false,
+      },      
+      uuid:'f137c3aa-1698-4ffb-a6e2-7fe6ef1509c7',
+      token:'',
+      products:[],  
       tempProduct:{
         imageUrl: []
       },
-      isNew: false
+      isNew: false,
+      pagination: {},
+    },
+    created(){
+      //預防無法取得token時，則無法進入此頁
+      this.token = document.cookie.replace(/(?:(?:^|.*;\s*)someCookieName\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+      if(this.token==='') {
+        window.location ='login.html';
+      }
+
+      this.getData();
     },
     methods: {
+      //預設第一頁
+        getData(page=1) {
+          const api = `${apiPath}${this.uuid}/admin/ec/products?page=${page}`;
+          //預設帶入token
+          axios.defaults.headers.common.Authorization = `Bearer ${this.token}`;
+          axios.get(api).then((response) => {
+            console.log('getData',response.data.meta.pagination)
+            console.log('token',this.token)
+            this.products = response.data.data;
+          //傳入current_Page到分頁元件內，用props
+            this.pagination = response.data.meta.pagination;
+
+      });
+
+
+        },
         openModal(isNew, item) {
         if (isNew){
             this.tempProduct = {};
@@ -244,20 +302,25 @@ new Vue({
         },
 
         updateProduct() {
-        if(this.isNew){
-        const id = new Date().getTime();
-        this.tempProduct.id = id;
-        this.products.push(this.tempProduct);
-        }else{
-          const id = this.tempProduct.id;
-          this.products.forEach((item,i) =>{
-            if (item.id === id) {
-            this.products[i] = this.tempProduct;
-          }  
-          })
+        // 新增商品
+        let api = `https://course-ec-api.hexschool.io/api/${this.uuid}/admin/ec/product`;
+        let httpMethod = 'post';
+        // 當不是新增商品時則切換成編輯商品 API
+        if (!this.isNew) {
+        api = `https://course-ec-api.hexschool.io/api/${this.uuid}/admin/ec/product/${this.tempProduct.id}`;
+        httpMethod = 'patch';
         }
-        this.tempProduct = {};
+
+        //預設帶入 token
+        axios.defaults.headers.common.Authorization = `Bearer ${this.token}`;
+
+        axios[httpMethod](api, this.tempProduct).then(() => {
+        console.log('123')
         $('#productModal').modal('hide');
+        this.getData()
+      }).catch((error) => {
+        console.log(error)
+      });
         },
 
         deleteModalShow(item) {
@@ -274,7 +337,35 @@ new Vue({
                 $('#delProductModal').modal('hide');
           }  
           })
+        },
+
+    // 上傳檔案
+    uploadFile() {
+      const uploadedFile = this.$refs.file.files[0];
+      const formData = new FormData();
+      formData.append('file', uploadedFile);
+      const url = `https://course-ec-api.hexschool.io/api/${this.uuid}/admin/storage`;
+      this.status.fileUploading = true;
+      axios.post(url, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }).then((response) => {
+        this.status.fileUploading = false;
+        if (response.status === 200) {
+          this.tempProduct.imageUrl.push(response.data.data.path);
         }
+      }).catch(() => {
+        console.log('上傳不可超過 2 MB');
+        this.status.fileUploading = false;
+      });
+    },
+
+    signout() {
+          //清除cookie的方式，讓它為空
+          document.cookie = `someCookieName=; expires=; path=/`;
+          window.location = 'login.html';
+          }
     }
 });    
 </script>
