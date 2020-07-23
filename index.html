@@ -292,7 +292,10 @@ new Vue({
         },
         openModal(isNew, item) {
         if (isNew){
-            this.tempProduct = {};
+          //這行下的 tempProduct 是被清空的狀態，需要再補上圖片陣列的結構
+            this.tempProduct = {
+              imageUrl: []
+            };
             this.isNew = true
         } else {
             this.tempProduct = Object.assign({}, item)
