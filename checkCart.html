@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!--載入bootstrap-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <!--載入fontawasome-->
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css' />
+    <!--載入vue-loading-->
+    <link href="https://cdn.jsdelivr.net/npm/vue-loading-overlay@3/dist/vue-loading.css" rel="stylesheet">
+</head>
+<body>
+<div id="app" class="container">
+    <!--loading套件-->
+    <loading  :active.sync="isLoading"></loading>
+    <!--loading end-->
+  <!-- 購物車頁面 start -->
+  <div class="my-5 row justify-content-center">
+    <div class="col-md-6">
+      <div class="text-right mb-3">
+        <button type="button" class="btn btn-outline-danger btn-sm">
+          <i class="far fa-trash-alt"> 刪除所有品項</i>
+        </button>
+      </div>
+      <table class="table">
+        <thead>
+          <th>刪除</th>
+          <th>品名</th>
+          <th width="150px">
+            數量
+          </th>
+          <th>單位</th>
+          <th>單價</th>
+        </thead>
+        <tbody>
+          <tr v-for="item in carts">
+            <td class="align-middle">
+              <button type="button" class="btn btn-outline-danger btn-sm">
+                <i class="far fa-trash-alt"></i>
+              </button>
+            </td>
+            <td class="align-middle">{{item.product.title}}</td>
+            <td class="align-middle">
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <button class="btn btn-outline-primary"
+                    type="button"
+                    :disabled="item.quantity === 1"
+                    @click="item.quantity -- ; updateQuantity(item.product.id, item.quantity)">
+                    -
+                  </button>
+                </div>
+                <input id="inlineFormInputGroupUsername"
+                type="number"
+                min="1"
+                class="form-control text-center"
+                v-model="item.quantity"
+                @change="updateQuantity(item.product.id, item.quantity)">
+                <div class="input-group-append">
+                  <button class="btn btn-outline-primary"
+                    type="button"
+                    @click="item.quantity ++; updateQuantity(item.product.id, item.quantity)"
+                    :disabled="status.loadingUpdate === item.product.id">
+                    <span
+                    class="spinner-border spinner-border-sm"
+                    role="status" aria-hidden="true"
+                    v-if="status.loadingUpdate === item.product.id"></span>
+                    <span v-else>+</span>
+                  </button>
+                </div>
+              </div>
+            </td>
+            <td class="align-middle">
+            </td>
+            <td class="align-middle text-right">
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" class="text-right">
+              總計{{cartTotal}}
+            </td>
+            <td class="text-right">
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+  <!-- 購物車頁面 end -->
+
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+    integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous">
+</script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
+</script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous">
+    </script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue-loading-overlay@3"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/3.3.0/vee-validate.full.min.js"></script>  
+</body>
+<script>
+Vue.component('loading', VueLoading);
+new Vue({
+    el:'#app',
+    data: {
+        tempProduct: {},
+        products: [],
+        isLoading: false,
+        status: {
+            loadingItem:'',
+            loadingUpdate:''
+        },
+        carts:[],
+        cartTotal: 0,
+        uuid: 'f137c3aa-1698-4ffb-a6e2-7fe6ef1509c7',
+        apiPath:'https://course-ec-api.hexschool.io'
+    },
+    methods: {
+        getCart() {
+            this.isLoading = true;
+            const url = `${this.apiPath}/api/${this.uuid}/ec/shopping`;
+            axios.get(url).then(res => {
+                this.isLoading = false;
+                console.log(res);
+                this.carts = res.data.data;
+                this.updateTotal();
+            }).catch(error => {//怕讀取失敗所以要加
+                this.isLoading = false;
+            })
+        },
+        updateTotal() {
+          this.carts.forEach(item =>{
+            this.cartTotal = item.product.price * item.quantity; 
+          })
+        },
+        updateQuantity(id, quantity) {
+            const url = `${this.apiPath}/api/${this.uuid}/ec/shopping`;
+            this.status.loadingUpdate= id;
+            const cart = {
+                "product": id,
+                "quantity": quantity,
+            };
+            axios.patch(url, cart).then(res => {
+                this.status.loadingUpdate = '';
+                console.log(res);
+                this.getCart();
+            }).catch(error => {//怕讀取失敗所以要加
+                this.status.loadingUpdate = '';
+            })
+        },
+    },
+    created() {
+        this.getCart();
+    }
+
+});
+</script>
+</html>
