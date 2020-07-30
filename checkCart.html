@@ -73,9 +73,9 @@
                 </div>
               </div>
             </td>
-            <td class="align-middle">
+            <td class="align-middle">{{item.product.unit}}
             </td>
-            <td class="align-middle text-right">
+            <td class="align-middle text-right">{{item.product.price}}
             </td>
           </tr>
         </tbody>
@@ -179,6 +179,7 @@ new Vue({
         .then(() => {
           this.isLoading = false;
           this.getCart();
+          this.updateTotal();
         });
     },
     },
