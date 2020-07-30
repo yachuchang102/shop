@@ -191,11 +191,13 @@ new Vue({
 
             axios.post(url, cart).then(res => {
                 this.isLoading = false;
+                $('#productModal').modal('hide');
                 console.log(res);
             }).catch(error => {//怕讀取失敗所以要加
                 this.isLoading = false;
                 console.log(error.response);
-                alert(error.response.data.errors)
+                alert(error.response.data.errors);
+                $('#productModal').modal('hide');
                             })
 
         }

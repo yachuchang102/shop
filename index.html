@@ -187,8 +187,9 @@
                     <div class="form-group">
                       <div class="form-check">
                         <input id="is_enabled" v-model="tempProduct.is_enabled" class="form-check-input" type="checkbox"
-                          :true-value="1" :false-value="0">
+                        :true-value="1" :false-value="0">
                         <label class="form-check-label" for="is_enabled">是否啟用</label>
+                        <span>{{tempProduct.is_enabled}}</span>
                       </div>
                     </div>
                   </div>
@@ -291,6 +292,7 @@ new Vue({
             console.log('getData',response.data.meta.pagination)
             console.log('token',this.token)
             this.products = response.data.data;
+            console.log('產品列表', this.products)
           //傳入current_Page到分頁元件內，用props
             this.pagination = response.data.meta.pagination;
 
@@ -324,7 +326,6 @@ new Vue({
 
         //預設帶入 token
         axios.defaults.headers.common.Authorization = `Bearer ${this.token}`;
-
         axios[httpMethod](api, this.tempProduct).then(() => {
         $('#productModal').modal('hide');
         this.getData();

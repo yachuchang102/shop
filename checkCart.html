@@ -21,7 +21,7 @@
   <div class="my-5 row justify-content-center">
     <div class="col-md-6">
       <div class="text-right mb-3">
-        <button type="button" class="btn btn-outline-danger btn-sm">
+        <button type="button" class="btn btn-outline-danger btn-sm" @click="removeAllCartItem">
           <i class="far fa-trash-alt"> 刪除所有品項</i>
         </button>
       </div>
@@ -38,7 +38,7 @@
         <tbody>
           <tr v-for="item in carts">
             <td class="align-middle">
-              <button type="button" class="btn btn-outline-danger btn-sm">
+              <button type="button" class="btn btn-outline-danger btn-sm" @click="removeCartItem(item.product.id)">
                 <i class="far fa-trash-alt"></i>
               </button>
             </td>
@@ -123,6 +123,7 @@ new Vue({
             loadingUpdate:''
         },
         carts:[],
+        cart: {},
         cartTotal: 0,
         uuid: 'f137c3aa-1698-4ffb-a6e2-7fe6ef1509c7',
         apiPath:'https://course-ec-api.hexschool.io'
@@ -160,6 +161,26 @@ new Vue({
                 this.status.loadingUpdate = '';
             })
         },
+        removeCartItem(id) {
+        this.isLoading = true;
+        const url = `${this.apiPath}/api/${this.uuid}/ec/shopping/${id}`;
+
+        axios.delete(url).then(() => {
+         this.isLoading = false;
+         this.getCart();
+         this.updateTotal();
+          });
+    },
+    removeAllCartItem() {
+      this.isLoading = true;
+      const url = `${this.apiPath}/api/${this.uuid}/ec/shopping/all/product`;
+
+      axios.delete(url)
+        .then(() => {
+          this.isLoading = false;
+          this.getCart();
+        });
+    },
     },
     created() {
         this.getCart();
