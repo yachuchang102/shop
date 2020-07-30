@@ -16,6 +16,7 @@
   <body>
     <div id="app">
       <div>
+        <loading  :active.sync="isLoading"></loading>
         <!--Navbar-->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
           <a class="navbar-brand" href="#">Navbar</a>
@@ -88,7 +89,7 @@
                 {{ item.price }}
               </td>
               <td>
-                <span v-if="item.is_enabled" class="text-success">啟用</span>
+                <span v-if="item.enabled" class="text-success">啟用</span>
                 <span v-else>未啟用</span>
               </td>
               <td>
@@ -186,10 +187,10 @@
                     </div>
                     <div class="form-group">
                       <div class="form-check">
-                        <input id="is_enabled" v-model="tempProduct.is_enabled" class="form-check-input" type="checkbox"
+                        <input id="is_enabled" v-model="tempProduct.enabled" class="form-check-input" type="checkbox"
                         :true-value="1" :false-value="0">
                         <label class="form-check-label" for="is_enabled">是否啟用</label>
-                        <span>{{tempProduct.is_enabled}}</span>
+                        <span>{{tempProduct.enabled}}</span>
                       </div>
                     </div>
                   </div>
@@ -257,6 +258,7 @@
 </html>
 <script>
 const apiPath = 'https://course-ec-api.hexschool.io/api/';
+Vue.component('loading', VueLoading);
 
 new Vue({
     el: '#app',
@@ -272,6 +274,7 @@ new Vue({
       },
       isNew: false,
       pagination: {},
+      isLoading: false,
     },
     created(){
       //預防無法取得token時，則無法進入此頁
@@ -285,10 +288,12 @@ new Vue({
     methods: {
       //預設第一頁
         getData(page=1) {
+          this.isLoading = true;
           const api = `${apiPath}${this.uuid}/admin/ec/products?page=${page}`;
           //預設帶入token
           axios.defaults.headers.common.Authorization = `Bearer ${this.token}`;
           axios.get(api).then((response) => {
+            this.isLoading = false;
             console.log('getData',response.data.meta.pagination)
             console.log('token',this.token)
             this.products = response.data.data;
@@ -300,6 +305,14 @@ new Vue({
 
 
         },
+        getProduct(id) {
+          const api = `${apiPath}${this.uuid}/admin/ec/product/${id}`;
+          axios.get(api).then((res) => {
+              this.tempProduct = res.data.data;
+            }).catch((error) => {
+              console.log(error);
+            });
+        },
         openModal(isNew, item) {
         if (isNew){
           //這行下的 tempProduct 是被清空的狀態，需要再補上圖片陣列的結構
@@ -308,7 +321,9 @@ new Vue({
             };
             this.isNew = true
         } else {
-            this.tempProduct = Object.assign({}, item)
+            this.tempProduct = Object.assign({}, item);
+            console.log('id', this.tempProduct.id);
+            this.getProduct(this.tempProduct.id);
             this.isNew = false
         }
         $('#productModal').modal('show')
@@ -323,7 +338,6 @@ new Vue({
         api = `https://course-ec-api.hexschool.io/api/${this.uuid}/admin/ec/product/${this.tempProduct.id}`;
         httpMethod = 'patch';
         }
-
         //預設帶入 token
         axios.defaults.headers.common.Authorization = `Bearer ${this.token}`;
         axios[httpMethod](api, this.tempProduct).then(() => {
@@ -340,12 +354,14 @@ new Vue({
         },
 
         deleteProduct() {
+          this.isLoading = true;
           const url = `https://course-ec-api.hexschool.io/api/${this.uuid}/admin/ec/product/${this.tempProduct.id}`;
 
         //預設帶入 token
         axios.defaults.headers.common.Authorization = `Bearer ${this.token}`;
 
         axios.delete(url).then(() => {
+        this.isLoading = false;
         $('#delProductModal').modal('hide');
         this.getData();
            });
@@ -382,9 +398,11 @@ new Vue({
     },
 
     signout() {
+          this.isLoading = true;
           //清除cookie的方式，讓它為空
           document.cookie = `someCookieName=; expires=; path=/`;
           window.location = 'login.html';
+          this.isLoading = false;
           }
     }
 });    
