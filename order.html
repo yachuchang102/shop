@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!--載入bootstrap-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <!--載入fontawasome-->
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css' />
+    <!--載入vue-loading-->
+    <link href="https://cdn.jsdelivr.net/npm/vue-loading-overlay@3/dist/vue-loading.css" rel="stylesheet">
+</head>
+
+<body>
+<div id="app" class="container">
+<loading  :active.sync="isLoading"></loading>
+<!-- validation-observer 驗證整體表單 -->
+<validation-observer v-slot="{ invalid }">
+    <!-- 表單送出改為使用 form submit 的方法 -->
+    <form @submit.prevent="submitForm">
+    <!--姓名-->
+    <div class="form-group">
+        <validation-provider rules="required" class="form-group" tag="div" v-slot="{ errors, classes }">
+              <label for="name">收件人姓名</label>
+              <input type="text" class="form-control" id="name" aria-describedby="name" v-model="form.name" :class="classes">
+                <!-- 錯誤訊息 -->
+              <span class="invalid-feedback">{{ errors[0] }}</span>
+        </validation-provider>
+      </div>
+    <!--姓名 end-->
+    <!--email-->
+    <div class="form-group">
+      <validation-provider rules="required|email" class="form-group" tag="div" v-slot="{ errors, classes}">
+            <label for="email">Email</label>
+            <input type="email" class="form-control" id="email" aria-describedby="email" v-model="form.email" :class="classes">
+        <!-- 錯誤訊息 -->
+            <span class="invalid-feedback">{{ errors[0] }}</span>
+      </validation-provider>
+    </div>
+      <!--email end-->
+    <!--電話-->
+    <div class="form-group">
+        <validation-provider rules="required|min:8|numeric" class="form-group" tag="div" v-slot="{ errors, classes}">
+              <label for="tel">電話</label>
+              <input type="tel" class="form-control" id="tel" aria-describedby="tel" v-model="form.tel" :class="classes"> 
+              <!-- 錯誤訊息 -->
+              <span class="invalid-feedback">{{ errors[0] }}</span>        
+        </validation-provider>
+    </div>
+    <!--電話 end-->
+    <!--地址-->
+    <div class="form-group">
+        <validation-provider rules="required" class="form-group" tag="div" v-slot="{ errors, classes}">
+              <label for="address">地址</label>
+              <input type="text" class="form-control" id="address" aria-describedby="address" v-model="form.address" :class="classes">
+            <!-- 錯誤訊息 -->
+              <span class="invalid-feedback">{{ errors[0] }}</span> 
+        </validation-provider>
+    </div>
+    <!--地址 end-->
+        <!--付款方式-->
+        <div class="form-group">
+                  <label for="payment">付款方式</label>
+                  <select id="payment" class="form-control" v-model="form.payment">
+                      <option disabled value="">請選擇付款方式</option>
+                      <option value="WebATM">WebATM</option>
+                      <option value="ATM">ATM</option>
+                      <option value="Barcode">Barcode</option>
+                      <option value="Credit">Credit</option>
+                      <option value="ApplePay">ApplePay</option>
+                      <option value="GooglePay">GooglePay</option>
+
+                  </select>
+        </div>
+        <!--付款方式 end-->
+        <!--留言-->
+        <div class="form-group">
+            <label for="message">留言</label>
+            <textarea id="message" v-model="form.message" class="form-control" cols="30" rows="3">
+          </textarea>
+          </div>
+        <!--留言 end-->
+      <!-- 送出表單使用 submit 的方法，如果驗證未通過則 disabled 該按鈕 -->
+      <div class="text-right">
+      <button type="submit" class="btn btn-primary" :disabled="invalid">送出表單</button>
+      </div>
+    </form>
+</validation-observer>
+</div>
+    
+
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous">
+</script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
+</script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous">
+</script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue-loading-overlay@3"></script>
+<!-- https://cdnjs.com/libraries/vee-validate 注意版本，full 則包含 rules -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vee-validate/3.3.0/vee-validate.full.min.js"></script>    
+</body>
+<script type="module">
+// 自定義設定檔案，錯誤的 className
+import zh from './zh_TW.js';
+// 將 VeeValidate input 驗證工具載入 作為全域註冊
+Vue.component('ValidationProvider', VeeValidate.ValidationProvider);
+// 將 VeeValidate 完整表單 驗證工具載入 作為全域註冊
+Vue.component('ValidationObserver', VeeValidate.ValidationObserver);
+// 載入自訂規則包
+VeeValidate.localize('tw', zh);
+VeeValidate.configure({
+  classes: {
+    valid: 'is-valid',
+    invalid: 'is-invalid',
+  },
+});
+
+
+// 掛載 Vue-Loading 套件
+Vue.component('loading', VueLoading);
+Vue.use(VueLoading);
+
+new Vue({
+    el:'#app',
+    data: {
+        isLoading: false,
+        form: {
+            name: '',
+            email: '',
+            tel: '',
+            address: '',
+            payment: '',
+            message: '',
+            },
+        uuid: 'f137c3aa-1698-4ffb-a6e2-7fe6ef1509c7',
+        apiPath:'https://course-ec-api.hexschool.io'
+        },
+    methods: {
+        submitForm() {
+            const vm = this;
+            vm.isLoading = true;
+            const url = `${this.apiPath}/api/${this.uuid}/ec/orders`;
+
+            axios.post(url, this.form).then((response) => {
+                    if (response.data.data.id) {
+                     vm.isLoading = false;
+                     console.log('成功送出');
+                }
+              }).catch((error) => {
+                    this.isLoading = false;
+                    console.log(error.response.data.errors);
+               });    
+            },
+    }
+   
+    })
+    </script>
+</html>
